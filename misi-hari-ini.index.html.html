@@ -1,0 +1,487 @@
+<title>Misi Hari Ini</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: satu kolom sempit, judul besar di atas, bar progres 6 segmen (satu warna per mata kuliah) berujung piala, lalu kartu tugas. */
+:root {
+  --bg: #F2F3FA;
+  --surface: #FFFFFF;
+  --ink: #1A1C3B;
+  --muted: #5B5E80;
+  --line: #DDE0F0;
+  --track: #E3E5F4;
+  --on-c: #FFFFFF;
+  --scrim: rgba(20, 21, 45, .74);
+
+  --coral: #D9422F;  --coral-t: #FDE6E2;
+  --teal: #0B8478;   --teal-t: #D8F3EF;
+  --violet: #6A47E0; --violet-t: #E7E1FC;
+  --amber: #B26F00;  --amber-t: #FCEFD0;
+  --rose: #C92F78;   --rose-t: #FBE0EC;
+  --sky: #1F72C4;    --sky-t: #DAECFB;
+
+  --gold: #F6B73C;
+  --gold-s: #D8960F;
+  --gold-ink: #B87A05;
+  --ray: rgba(246, 183, 60, .38);
+
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12132A;
+    --surface: #1C1E3D;
+    --ink: #ECEDFB;
+    --muted: #A1A4C9;
+    --line: #2F3263;
+    --track: #2A2D5A;
+    --on-c: #12132A;
+    --scrim: rgba(6, 7, 20, .8);
+
+    --coral: #FF8A7A;  --coral-t: #3B2231;
+    --teal: #4FD6C8;   --teal-t: #153630;
+    --violet: #A794FF; --violet-t: #2B2760;
+    --amber: #F5BE4D;  --amber-t: #3A3118;
+    --rose: #FF7FB2;   --rose-t: #3B1F36;
+    --sky: #6DB8FF;    --sky-t: #17314F;
+
+    --gold: #F6B73C;
+    --gold-s: #D8960F;
+    --gold-ink: #FFC857;
+    --ray: rgba(255, 200, 87, .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12132A;
+  --surface: #1C1E3D;
+  --ink: #ECEDFB;
+  --muted: #A1A4C9;
+  --line: #2F3263;
+  --track: #2A2D5A;
+  --on-c: #12132A;
+  --scrim: rgba(6, 7, 20, .8);
+
+  --coral: #FF8A7A;  --coral-t: #3B2231;
+  --teal: #4FD6C8;   --teal-t: #153630;
+  --violet: #A794FF; --violet-t: #2B2760;
+  --amber: #F5BE4D;  --amber-t: #3A3118;
+  --rose: #FF7FB2;   --rose-t: #3B1F36;
+  --sky: #6DB8FF;    --sky-t: #17314F;
+
+  --gold: #F6B73C;
+  --gold-s: #D8960F;
+  --gold-ink: #FFC857;
+  --ray: rgba(255, 200, 87, .3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 640px; margin-inline: auto; }
+
+.c-coral  { --c: var(--coral);  --ct: var(--coral-t); }
+.c-teal   { --c: var(--teal);   --ct: var(--teal-t); }
+.c-violet { --c: var(--violet); --ct: var(--violet-t); }
+.c-amber  { --c: var(--amber);  --ct: var(--amber-t); }
+.c-rose   { --c: var(--rose);   --ct: var(--rose-t); }
+.c-sky    { --c: var(--sky);    --ct: var(--sky-t); }
+
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 3px solid var(--c, var(--ink)); outline-offset: 3px; }
+
+/* Header */
+.eyebrow {
+  font-weight: 700; font-size: .78rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); margin: 0;
+}
+h1 {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2.5rem, 11vw, 3.9rem); line-height: .96;
+  letter-spacing: -.035em; margin: 10px 0 12px; text-wrap: balance;
+}
+.status { margin: 0; color: var(--muted); min-height: 1.5em; }
+
+.progress { display: flex; align-items: center; gap: 14px; margin-top: 22px; }
+.count {
+  font-family: var(--font-display); font-weight: 800; font-size: 1.7rem;
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em; min-width: 3.1ch;
+}
+.segs { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.seg { height: 14px; border-radius: 99px; background: var(--track); transition: background .35s, transform .35s; }
+.seg.on { background: var(--c); transform: scaleY(1.2); }
+.trophy-s { width: 36px; height: 36px; flex: none; color: var(--muted); transition: color .3s; }
+.trophy-s.lit { color: var(--gold-ink); animation: wiggle .8s ease-out; }
+
+/* Cards */
+.list { list-style: none; margin: 30px 0 0; padding: 0; display: grid; gap: 12px; }
+.task {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+  padding: 16px; transition: background .3s, border-color .3s;
+}
+.task.done { background: color-mix(in srgb, var(--ct) 72%, var(--surface)); border-color: transparent; }
+.row { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }
+.check {
+  flex: none; position: relative; width: 34px; height: 34px; padding: 0;
+  display: grid; place-items: center; border-radius: 50%;
+  border: 2.5px solid var(--c); background: transparent; color: var(--on-c);
+  cursor: pointer; transition: background .2s, transform .2s;
+}
+.check:hover { transform: scale(1.07); }
+.task.done .check { background: var(--c); }
+.check svg { width: 18px; height: 18px; }
+.check path, .sub .box path {
+  stroke-dasharray: 26; stroke-dashoffset: 26; transition: stroke-dashoffset .3s .05s;
+}
+.task.done .check path, .sub.on .box path { stroke-dashoffset: 0; }
+.text { min-width: 0; padding-top: 2px; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+.course { font-weight: 700; font-size: .72rem; line-height: 1.2; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+.badge {
+  font-weight: 700; font-size: .68rem; line-height: 1; letter-spacing: .04em;
+  padding: 4px 8px; border-radius: 99px; background: var(--c); color: var(--on-c);
+}
+.title {
+  margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.28rem;
+  line-height: 1.2; letter-spacing: -.01em; text-wrap: balance; transition: color .3s;
+}
+.task.done .title { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--c); }
+
+.subs { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0 48px; }
+.sub {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--bg); border-radius: 99px;
+  padding: 7px 14px 7px 8px; font-weight: 700; font-size: .88rem; line-height: 1;
+  transition: border-color .2s;
+}
+.sub .box {
+  position: relative; width: 20px; height: 20px; display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--c); color: var(--on-c); transition: background .2s;
+}
+.sub .box svg { width: 12px; height: 12px; }
+.sub.on { border-color: var(--c); }
+.sub.on .box { background: var(--c); }
+
+.pip { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--c); pointer-events: none; }
+
+.foot { margin-top: 30px; display: flex; justify-content: flex-end; }
+.reset {
+  background: none; border: 0; padding: 6px 2px; color: var(--muted); cursor: pointer;
+  font-size: .9rem; text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* Reward */
+.overlay {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  background: var(--scrim); padding: 24px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+#confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.card {
+  position: relative; width: min(100%, 420px); overflow: hidden; text-align: center;
+  background: var(--surface); color: var(--ink); border-radius: 28px; padding: 40px 28px 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .4); animation: pop .6s cubic-bezier(.2, 1.2, .3, 1) both;
+}
+.rays {
+  position: absolute; left: 50%; top: -110px; width: 440px; height: 440px; margin-left: -220px;
+  background: repeating-conic-gradient(from 0deg, var(--ray) 0 9deg, transparent 9deg 18deg);
+  -webkit-mask-image: radial-gradient(circle, #000 15%, transparent 68%);
+  mask-image: radial-gradient(circle, #000 15%, transparent 68%);
+  animation: spin 16s linear infinite;
+}
+.big { position: relative; width: 132px; height: 132px; margin: 0 auto 14px; animation: bounce 1.6s ease-in-out .6s infinite; }
+.big svg { width: 100%; height: 100%; display: block; }
+.star { position: absolute; width: 22px; height: 22px; color: var(--gold); animation: twinkle 1.4s ease-in-out infinite; }
+.star.s1 { left: -26px; top: 8px; }
+.star.s2 { right: -22px; top: 30px; animation-delay: .35s; width: 16px; height: 16px; }
+.star.s3 { right: 6px; top: -14px; animation-delay: .7s; width: 14px; height: 14px; }
+.card h2 {
+  position: relative; margin: 0 0 8px; font-family: var(--font-display); font-weight: 800;
+  font-size: 2rem; line-height: 1.05; letter-spacing: -.03em; text-wrap: balance;
+}
+.card p { position: relative; margin: 0; color: var(--muted); text-wrap: balance; }
+.btns { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }
+.btn {
+  cursor: pointer; font-weight: 700; padding: 12px 22px; border-radius: 99px;
+  border: 2px solid var(--ink); background: var(--ink); color: var(--bg);
+}
+.btn.ghost { background: transparent; color: var(--ink); }
+
+@keyframes pop { 0% { opacity: 0; transform: scale(.7) translateY(40px); } 100% { opacity: 1; transform: none; } }
+@keyframes bounce { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes twinkle { 0%, 100% { transform: scale(.5) rotate(0); opacity: .4; } 50% { transform: scale(1.15) rotate(25deg); opacity: 1; } }
+@keyframes wiggle { 0% { transform: scale(.6) rotate(-14deg); } 40% { transform: scale(1.25) rotate(10deg); } 100% { transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Minggu, 22 November 2026</p>
+    <h1>Misi hari ini</h1>
+    <p class="status" id="status" aria-live="polite"></p>
+    <div class="progress">
+      <div class="count" id="count">0/7</div>
+      <div class="segs" id="segs" aria-hidden="true"></div>
+      <svg class="trophy-s" id="trophyS" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M36 22h48v30c0 17-11 28-24 28S36 69 36 52z"/>
+        <path d="M36 30H22c0 14 6 24 18 26M84 30h14c0 14-6 24-18 26"/>
+        <path d="M60 80v14M42 100h36"/>
+      </svg>
+    </div>
+  </header>
+
+  <ul class="list" id="list"></ul>
+
+  <div class="foot">
+    <button type="button" class="reset" id="reset">Atur ulang centang</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="winTitle">
+  <canvas id="confetti"></canvas>
+  <div class="card">
+    <div class="rays"></div>
+    <div class="big">
+      <svg class="star s1" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1l2.9 7.1L22 9.2l-5.5 4.9L18.2 22 12 18l-6.2 4 1.7-7.9L2 9.2l7.1-1.1z"/></svg>
+      <svg class="star s2" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1l2.9 7.1L22 9.2l-5.5 4.9L18.2 22 12 18l-6.2 4 1.7-7.9L2 9.2l7.1-1.1z"/></svg>
+      <svg class="star s3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1l2.9 7.1L22 9.2l-5.5 4.9L18.2 22 12 18l-6.2 4 1.7-7.9L2 9.2l7.1-1.1z"/></svg>
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <path d="M36 30H20c0 17 7 27 20 29" fill="none" stroke="var(--gold-s)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M84 30h16c0 17-7 27-20 29" fill="none" stroke="var(--gold-s)" stroke-width="7" stroke-linecap="round"/>
+        <path d="M34 18h52v34c0 18-12 30-26 30S34 70 34 52z" fill="var(--gold)"/>
+        <path d="M34 18h14v60c-9-5-14-14-14-26z" fill="var(--gold-s)" opacity=".45"/>
+        <rect x="53" y="82" width="14" height="14" fill="var(--gold-s)"/>
+        <rect x="38" y="95" width="44" height="12" rx="4" fill="var(--gold)"/>
+        <rect x="38" y="95" width="44" height="4" rx="2" fill="var(--gold-s)" opacity=".5"/>
+        <path d="M60 30l4 8.5 9 1.2-6.6 6.2 1.7 9-8.1-4.4-8.1 4.4 1.7-9-6.6-6.2 9-1.2z" fill="#fff" opacity=".92"/>
+      </svg>
+    </div>
+    <h2 id="winTitle">Semua misi selesai!</h2>
+    <p>Semua tugas hari ini beres. Waktunya istirahat, kamu sudah bekerja keras.</p>
+    <div class="btns">
+      <button type="button" class="btn" id="closeWin">Lihat daftar</button>
+      <button type="button" class="btn ghost" id="again">Mulai lagi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY = 'misi-hari-ini-2026-11-22';
+  var TASKS = [
+    { id: 'ilmiah',  course: 'Penulisan Ilmiah',            title: 'Manuskrip dan PPT',         color: 'violet', subs: ['Manuskrip 2.5', 'Manuskrip 3.3', 'PPT'] },
+    { id: 'holistik', course: 'Keperawatan Holistik',       title: 'Makalah cupping dan PPT',   color: 'teal', subs: ['Makalah cupping', 'PPT'] },
+    { id: 'booklet', course: 'Keperawatan Holistik',        title: 'Booklet',                   color: 'teal' },
+    { id: 'paliatif', course: 'Keperawatan Paliatif',       title: 'Makalah dan PPT presentasi', color: 'rose', subs: ['Makalah', 'PPT presentasi'] },
+    { id: 'tulis',   course: 'Bahasa Jepang',               title: 'Tugas tulis tangan',        color: 'coral', subs: ['Tugas 1', 'Tugas 2'] },
+    { id: 'tm',      course: 'Bahasa Jepang',               title: 'TM hari ini',               color: 'amber', badge: 'Hari ini' },
+    { id: 'sik',     course: 'Sistem Informasi Keperawatan', title: 'Membuat blog',             color: 'sky' }
+  ];
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  var MSG = [
+    'Mulai dari yang paling ringan dulu, lalu naik pelan-pelan.',
+    'Bagus, momentumnya sudah jalan.',
+    'Setengah jalan. Tarik napas, lanjut.',
+    'Tinggal sedikit lagi.',
+    'Semua selesai. Hadiahmu sudah menunggu.'
+  ];
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var list = document.getElementById('list');
+  var segsEl = document.getElementById('segs');
+  var countEl = document.getElementById('count');
+  var statusEl = document.getElementById('status');
+  var trophyS = document.getElementById('trophyS');
+  var overlay = document.getElementById('overlay');
+  var resetBtn = document.getElementById('reset');
+
+  function leaves(t) {
+    return t.subs ? t.subs.map(function (_, i) { return t.id + ':' + i; }) : [t.id];
+  }
+  function isDone(t) { return leaves(t).every(function (k) { return state[k]; }); }
+  function doneCount() { return TASKS.filter(isDone).length; }
+
+  TASKS.forEach(function (t) {
+    var li = document.createElement('li');
+    li.className = 'task c-' + t.color;
+    li.dataset.id = t.id;
+    var subs = '';
+    if (t.subs) {
+      subs = '<div class="subs">' + t.subs.map(function (s, i) {
+        return '<button type="button" class="sub" role="checkbox" aria-checked="false" data-k="' + t.id + ':' + i + '"><span class="box">' + CHECK + '</span>' + s + '</button>';
+      }).join('') + '</div>';
+    }
+    li.innerHTML =
+      '<div class="row">' +
+        '<button type="button" class="check" role="checkbox" aria-checked="false" aria-label="Tandai selesai: ' + t.title + '">' + CHECK + '</button>' +
+        '<div class="text"><div class="meta"><span class="course">' + t.course + '</span>' +
+        (t.badge ? '<span class="badge">' + t.badge + '</span>' : '') +
+        '</div><h2 class="title">' + t.title + '</h2></div>' +
+      '</div>' + subs;
+    list.appendChild(li);
+
+    var seg = document.createElement('div');
+    seg.className = 'seg c-' + t.color;
+    segsEl.appendChild(seg);
+  });
+
+  function paint() {
+    var n = doneCount();
+    Array.prototype.forEach.call(list.children, function (li, idx) {
+      var t = TASKS[idx];
+      var done = isDone(t);
+      li.classList.toggle('done', done);
+      li.querySelector('.check').setAttribute('aria-checked', done ? 'true' : 'false');
+      Array.prototype.forEach.call(li.querySelectorAll('.sub'), function (b) {
+        var on = !!state[b.dataset.k];
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      segsEl.children[idx].classList.toggle('on', done);
+    });
+    countEl.textContent = n + '/' + TASKS.length;
+    var m = n === 0 ? 0 : n <= 2 ? 1 : n === 3 ? 2 : n < TASKS.length ? 3 : 4;
+    statusEl.textContent = MSG[m];
+    trophyS.classList.toggle('lit', n === TASKS.length);
+  }
+
+  function burst(el) {
+    if (reduce || !el || !el.animate) return;
+    for (var i = 0; i < 10; i++) {
+      (function (i) {
+        var p = document.createElement('i');
+        p.className = 'pip';
+        el.appendChild(p);
+        var a = (i / 10) * Math.PI * 2, d = 26 + Math.random() * 14;
+        var anim = p.animate([
+          { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+          { transform: 'translate(calc(-50% + ' + Math.cos(a) * d + 'px), calc(-50% + ' + Math.sin(a) * d + 'px)) scale(0)', opacity: 0 }
+        ], { duration: 520, easing: 'cubic-bezier(.2,.7,.3,1)' });
+        anim.onfinish = function () { p.remove(); };
+      })(i);
+    }
+  }
+
+  list.addEventListener('click', function (e) {
+    var li = e.target.closest('.task');
+    if (!li) return;
+    var sub = e.target.closest('.sub');
+    var row = e.target.closest('.row');
+    if (!sub && !row) return;
+    var t = TASKS.filter(function (x) { return x.id === li.dataset.id; })[0];
+    var wasDone = isDone(t);
+    var wasAll = doneCount() === TASKS.length;
+
+    if (sub) {
+      var k = sub.dataset.k;
+      if (state[k]) delete state[k]; else { state[k] = true; burst(sub.querySelector('.box')); }
+    } else {
+      var to = !wasDone;
+      leaves(t).forEach(function (k) { if (to) state[k] = true; else delete state[k]; });
+    }
+    save();
+    paint();
+    if (!wasDone && isDone(t)) burst(li.querySelector('.check'));
+    if (!wasAll && doneCount() === TASKS.length) setTimeout(celebrate, 600);
+  });
+
+  /* Hadiah */
+  var raf = 0;
+  function celebrate() {
+    overlay.hidden = false;
+    document.getElementById('closeWin').focus();
+    if (!reduce) confetti();
+  }
+  function closeWin() {
+    overlay.hidden = true;
+    cancelAnimationFrame(raf);
+  }
+  document.getElementById('closeWin').addEventListener('click', closeWin);
+  document.getElementById('again').addEventListener('click', function () {
+    closeWin(); state = {}; save(); paint();
+    window.scrollTo(0, 0);
+  });
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeWin(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !overlay.hidden) closeWin(); });
+
+  function confetti() {
+    var c = document.getElementById('confetti');
+    var ctx = c.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = c.width = Math.round(window.innerWidth * dpr);
+    var H = c.height = Math.round(window.innerHeight * dpr);
+    var cols = ['#FF6B5A', '#2EC4B6', '#8B6CFF', '#FFC043', '#FF5FA2', '#4DA3FF'];
+    var ps = [];
+    function add(n, x, y, vx, vy) {
+      for (var i = 0; i < n; i++) {
+        ps.push({
+          x: x, y: y,
+          vx: (vx + (Math.random() - .5) * 12) * dpr,
+          vy: (vy - Math.random() * 10) * dpr,
+          g: .3 * dpr,
+          w: (6 + Math.random() * 6) * dpr, h: (9 + Math.random() * 8) * dpr,
+          r: Math.random() * 6, vr: (Math.random() - .5) * .4,
+          col: cols[(Math.random() * cols.length) | 0]
+        });
+      }
+    }
+    add(110, W / 2, H * .4, 0, -8);
+    add(60, 0, H * .85, 9, -14);
+    add(60, W, H * .85, -9, -14);
+    var t0 = performance.now();
+    function frame(now) {
+      var el = now - t0;
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < ps.length; i++) {
+        var p = ps[i];
+        p.vy += p.g; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0, 1 - el / 4600);
+        ctx.fillStyle = p.col;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      }
+      if (el < 4600 && !overlay.hidden) raf = requestAnimationFrame(frame);
+      else ctx.clearRect(0, 0, W, H);
+    }
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(frame);
+  }
+
+  /* Atur ulang, dua langkah */
+  var armed = false, tm = 0;
+  function disarm() { armed = false; clearTimeout(tm); resetBtn.textContent = 'Atur ulang centang'; }
+  resetBtn.addEventListener('click', function () {
+    if (!armed) {
+      armed = true;
+      resetBtn.textContent = 'Yakin? Klik sekali lagi';
+      tm = setTimeout(disarm, 3000);
+      return;
+    }
+    disarm(); state = {}; save(); paint();
+  });
+
+  paint();
+})();
+</script>
